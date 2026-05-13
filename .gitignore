@@ -1,0 +1,87 @@
+# =========================
+# Java / Maven
+# =========================
+
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven wrapper : on garde le wrapper s'il existe
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs Java / Spring
+*.log
+logs/
+
+
+# =========================
+# IDE
+# =========================
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse / STS
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# VS Code
+.vscode/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+
+# =========================
+# OS
+# =========================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# =========================
+# Docker / Env
+# =========================
+
+.env
+.env.*
+!.env.example
+
+# Volumes locaux éventuels
+data/
+docker-data/
+postgres-data/
+
+
+# =========================
+# Build générique
+# =========================
+
+build/
+out/
+
+
+# =========================
+# Fichiers temporaires
+# =========================
+
+*.tmp
+*.temp
+*.swp
+*.swo
