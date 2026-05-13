@@ -1,0 +1,64 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+version: '3.8'
+
+services:
+  # --- INFRASTRUCTURE KAFKA ---
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+
+  # --- BASE DE DONNÉES POSTGRESQL ---
+  db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: user_tp
+      POSTGRES_PASSWORD: password_tp
+      POSTGRES_DB: messagerie_db
+    ports:
+      - "5432:5432"
+    volumes:
+      # Optionnel : pour initialiser tes tables au démarrage
+      - ./infrastructure/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # --- SERVICE DE TRADUCTION ---
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: libretranslate
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      # On limite aux langues demandées dans le TP pour gagner du temps au chargement
+      LT_LOAD_ONLY: "en,fr" 
+      LT_UPDATE_MODELS: "true"
