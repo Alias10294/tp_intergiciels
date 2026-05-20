@@ -19,40 +19,43 @@ Les échanges sont centralisés autour d'un broker Apache Kafka. Kafka permet de
 L'architecture se compose donc des éléments suivants :
 
 ```mermaid
+%%{init: {"flowchart": {"curve": "bumpX"}} }%%
 flowchart LR
-    ClientA[Client A<br/>Spring Boot Shell]
-    ClientB[Client B<br/>Spring Boot Shell]
+    subgraph Clients["Clients"]
+        direction TB
+        ClientA["Client A<br/>Spring Boot Shell"]
+        ClientB["Client B<br/>Spring Boot Shell"]
+    end
 
-    Kafka[(Apache Kafka<br/>topicout / topicin<br/>topictechout / topictechin)]
+    Kafka[(Apache Kafka<br/>topicin / topictechin<br/>topicout / topictechout)]
 
-    Translate[per-translate-service<br/>Spring Boot]
-    Libre[LibreTranslate<br/>API HTTP locale]
+    subgraph Services["Services Spring Boot"]
+        direction TB
+        Translate["per-translate-service"]
+        ConsDB["client-cons-db"]
+    end
 
-    ConsDB[client-cons-db<br/>Spring Boot]
-    DB[(PostgreSQL<br/>archivage + clients connectés)]
+    subgraph Infra["Infrastructure"]
+        direction TB
+        Libre["LibreTranslate"]
+        DB[(PostgreSQL)]
+    end
 
-    ClientA -->|messages applicatifs<br/>topicout| Kafka
-    ClientB -->|messages applicatifs<br/>topicout| Kafka
+    ClientA -->|"topicout / topictechout"| Kafka
+    ClientB -->|"topicout / topictechout"| Kafka
 
-    Kafka -->|lecture topicout| Translate
-    Translate -->|requête HTTP /translate| Libre
-    Libre -->|réponse JSON| Translate
-    Translate -->|message traduit<br/>topicin| Kafka
+    Kafka -->|"topicin / topictechin"| ClientA
+    Kafka -->|"topicin / topictechin"| ClientB
 
-    Kafka -->|lecture topicin| ClientA
-    Kafka -->|lecture topicin| ClientB
+    Kafka -->|"lecture topicout<br/>messages à traduire"| Translate
+    Translate -->|"HTTP"| Libre
+    Libre -->|"JSON"| Translate
+    Translate -->|"publication topicin<br/>messages traduits"| Kafka
 
-    ClientA -->|CONNECT / GET / DISCONNECT<br/>topictechout| Kafka
-    ClientB -->|CONNECT / GET / DISCONNECT<br/>topictechout| Kafka
-
-    Kafka -->|lecture topictechout| ConsDB
-    ConsDB -->|lecture/écriture| DB
-    ConsDB -->|réponses techniques<br/>topictechin| Kafka
-
-    Kafka -->|lecture topictechin| ClientA
-    Kafka -->|lecture topictechin| ClientB
-
-    Kafka -->|archivage messages<br/>topicout / topicin| ConsDB
+    Kafka -->|"lecture topictechout<br/>commandes clients"| ConsDB
+    Kafka -->|"lecture topicout / topicin<br/>archivage messages"| ConsDB
+    ConsDB -->|"publication topictechin<br/>réponses techniques"| Kafka
+    ConsDB <-->|"clients + archives"| DB
 ```
 
 ## Rôle des topics Kafka
