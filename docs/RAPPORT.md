@@ -58,8 +58,8 @@ flowchart LR
     ConsDB <-->|"clients + archives"| DB
 ```
 
-## Rôle des topics Kafka
-Quatre topics Kafka sont utilisés.
+## Rôles des topics Kafka
+Quatre topics Kafka sont utilisés:
 
 | Topic | Producteurs | Consommateurs | Rôle |
 |---|---|---|---|
@@ -84,46 +84,31 @@ Son fonctionnement est le suivant :
 
 Le service ne communique pas directement avec PostgreSQL. Cette séparation permet de conserver une responsabilité unique : `per-translate-service` traduit, tandis que `client-cons-db` archive les messages et gère l'état des clients.
 
-Exemple de flux :
-
-```text
-ClientA envoie :
-FROM:ClientA#TO:ClientB#hello guys
-
-per-translate-service lit le message depuis topicout,
-appelle LibreTranslate,
-puis publie dans topicin :
-
-FROM:ClientA#TO:ClientB#bonjour les gars
-```
-
 ## Service d'archivage et de gestion des clients : `client-cons-db`
-Le service `client-cons-db` est responsable de la partie état et persistance.
+Le service `client-cons-db` est responsable de l'archivage des messages techniques cachés passant à travers la messagerie.
 
 Il traite deux types d'informations :
-
 - les messages techniques venant de `topictechout` ;
 - les messages applicatifs venant de `topicout` et `topicin`.
 
 Lorsqu'un client se connecte, il envoie un message du type :
-
 ```text
 CONNECT:ClientA
 ```
 
 Le service enregistre alors le client en base ou met à jour son statut à connecté. Lorsqu'un client quitte l'application avec la commande byebye, le client envoie :
-
+```text
 DISCONNECT:ClientA
-
+```
 Le service met alors à jour son statut à déconnecté.
 
-Le service répond aussi aux demandes de liste des clients connectés :
-
+Le service répond également aux demandes de liste des clients connectés :
+```text
 GET:ClientA
-
+```
 Dans ce cas, il interroge PostgreSQL et renvoie la liste des clients disponibles via topictechin.
 
-Enfin, client-cons-db archive les messages applicatifs. Les messages lus depuis topicout correspondent aux messages originaux envoyés par les clients. Les messages lus depuis topicin correspondent aux messages traduits renvoyés aux destinataires.
+Enfin, `client-cons-db` archive les messages applicatifs. Les messages lus depuis topicout correspondent aux messages originaux envoyés par les clients. Les messages lus depuis `topicin` correspondent aux messages traduits renvoyés aux destinataires.
 
 ## Déploiement Docker
 Le projet utilise Docker Compose afin de lancer les services d'infrastructure et les services applicatifs.
@@ -143,41 +128,9 @@ Kafka est configuré avec des topics auto-créés afin que les topics nécessair
 Le client Shell n'est pas nécessairement conteneurisé, car il s'agit d'une application interactive en terminal. Il est lancé localement via les scripts fournis :
 
 ```text
-start_chatting.bat ClientA
-start_chatting.sh ClientA
+.\start_chatting.bat ClientA
+./start_chatting.sh ClientA
 ```
-
-## Tests réalisés
-
-Le fonctionnement du service de traduction a été validé avec deux clients lancés simultanément.
-
-Premier test : envoi d'un message à soi-même.
-
-```text
-ClientA -> ClientA : hello world
-```
-Résultat obtenu :
-```text
-ClientA reçoit : bonjour monde
-```
-Deuxième test : envoi entre deux clients. 
-```text
-ClientA -> ClientB : hello guys
-```
-Résultat attendu :
-```text
-ClientB reçoit : bonjour les gars
-```
-Ce test valide la chaîne complète suivante :
-```text
-Client Shell
--> Kafka topicout
--> per-translate-service
--> LibreTranslate
--> Kafka topicin
--> Client Shell destinataire
-```
-Ces tests montrent que le service de traduction fonctionne indépendamment du service d'archivage. L'intégration complète nécessite ensuite le fonctionnement du service client-cons-db, notamment pour la gestion des connexions, des déconnexions, de la liste des clients connectés et de l'archivage PostgreSQL.
 
 ## Limites et améliorations possibles
 L'application ne met pas en place d'authentification ni de chiffrement, conformément au cadre minimal du sujet. Dans une version plus complète, il serait possible d'ajouter une authentification des utilisateurs, du chiffrement des messages, une gestion plus stricte des droits d'accès et une meilleure tolérance aux pannes.
