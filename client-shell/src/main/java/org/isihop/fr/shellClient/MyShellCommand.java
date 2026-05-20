@@ -1,6 +1,7 @@
 package org.isihop.fr.shellClient;
 
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +146,8 @@ private static final Logger logger = LoggerFactory.getLogger(MyShellCommand.clas
      *********************************/
     @KafkaListener(topics = "${application.topictechin}")
     public void consumeTech(String messageTech) {
+        // Debug: affichage de tous les messages techniques reçus
+        // logger.error(String.format("#### -> %s: Reception du message Technique -> %s",MONNOM, messageTech));
         if (extract_TO(messageTech).compareToIgnoreCase(MONNOM.trim())==0) //si c'est bien pour moi!
         {
             logger.error(String.format("#### -> %s: Reception du message Technique de %s -> %s",MONNOM, extract_FROM(messageTech),extract_MSG(messageTech)));
