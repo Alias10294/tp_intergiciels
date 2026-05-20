@@ -1,4 +1,4 @@
-package com.tp.client_cross_db.service;
+package com.tp.client_cons_db.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,10 +8,10 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import com.tp.client_cross_db.model.MessageArchive;
-import com.tp.client_cross_db.model.UtilisateurConnecte;
-import com.tp.client_cross_db.repository.MessageArchiveRepository;
-import com.tp.client_cross_db.repository.UtilisateurConnecteRepository;
+import com.tp.client_cons_db.model.MessageArchive;
+import com.tp.client_cons_db.model.UtilisateurConnecte;
+import com.tp.client_cons_db.repository.MessageArchiveRepository;
+import com.tp.client_cons_db.repository.UtilisateurConnecteRepository;
 
 @Service
 public class KafkaConsumerService {

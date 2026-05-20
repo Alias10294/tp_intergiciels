@@ -1,4 +1,4 @@
-package com.tp.client_cross_db.model;
+package com.tp.client_cons_db.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

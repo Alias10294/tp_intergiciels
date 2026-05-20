@@ -1,10 +1,10 @@
-package com.tp.client_cross_db;
+package com.tp.client_cons_db;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ClientCrossDbApplicationTests {
+class ClientConsDbApplicationTests {
 
 	@Test
 	void contextLoads() {

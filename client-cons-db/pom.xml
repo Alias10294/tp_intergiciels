@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.tp</groupId>
-	<artifactId>client-cross-db</artifactId>
+	<artifactId>client-cons-db</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>client-cross-db</name>
+	<name>client-cons-db</name>
 	<description/>
 	<url/>
 	<licenses>
