@@ -26,4 +26,7 @@ Une fois les conteneurs mis en place, pour lancer un client de messagerie, il su
 ## Description
 Ce projet met en place une messagerie utilisée via le terminal, offrant une fonctionnalité de traduction automatique anglais -> français pour ses utilisateurs.
 
-Ce projet est basé sur Docker ainsi que Kafka afin de prodiguer un service à la fois rapide et portable. Il est composé de son application de messagerie via le terminal, d'un service de logging en connexion avec Kafka et une base de données PostgreSQL, et d'un service de traduction automatique utilisant un serveur LibreTranslate hosté en local.
+Basé sur Docker ainsi que Kafka afin de prodiguer un service à la fois rapide et portable, le projet est composé de son application de messagerie via le terminal, d'un service de logging en connexion avec Kafka et une base de données PostgreSQL, et d'un service de traduction automatique utilisant un serveur LibreTranslate hosté en local.
+
+## Pour aller plus loin...
+Un rapport plus détaillé concernant l'architecture du projet se trouve dans le dossier `docs/`.
