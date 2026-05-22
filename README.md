@@ -6,21 +6,52 @@
 22101912: VERZELE **Florian**, florian.verzele@uphf.fr
 <br>
 
+## Exigences et Prérequis Système
+Avant de lancer l'application, il est impératif de s'arrurer que l'environnement système soit prêt à accueillir les différents conteneurs:
+
+| Port | Conteneur | Informations supplémentaires |
+|---|---|---|
+| `5432` | PostgreSQL | Un serveur PostgreSQL local installé via un utilitaire système lance un service en tâche de fond qui s'accapare le port par défaut. |
+| `5433` | PostgreSQL | Présence possible d'un Postgre local (5432), donc on applique un décalage sur le port d'écoute. |
+| `9092` | Apache Kafka | |
+| `5000` | LibreTranslate | |
+| `8080` | Services Spring Boot | Présence possible d'autres projets (Tomcat, Langflow etc) |
+
+Commande pour vérifier la présence de processus sur les ports:
+```
+> netstat -ano | findstr no_de_port_
+```
+
 ## Utilisation
 Pour lancer l'application, il suffit de suivre ces commandes:
-```text
+```
 > cd [dossier-au-choix]
 > git clone https://github.com/Alias10294/tp_intergiciels.git
 > docker compose up --build -d
 ```
 Une fois les conteneurs mis en place, pour lancer un client de messagerie, il suffit d'utiliser dans un terminal à la racine du projet:
 - Sur Windows
-```text
+```
 > .\start_chatting.bat [pseudo-au-choix] [groupe-au-choix](optionnel)
 ```
 - Sur Linux/MacOS
-```text
+```
 > ./start_chatting.sh [pseudo-au-choix] [group-au-choix](optionnel)
+```
+Pour plus de praticité du point de vue utilisateur, il est possible d'afficher les tables de la base de données afin d'observer les archives et les utilisateurs connectés. <br>
+Pour ce faire, exécuter les commandes suivantes dans le Terminal, puis d'entrer les requêtes SQL que vous souhaitez:
+```
+> docker exec -it postgres-db psql -U user_tp -d messagerie_db -c
+> SELECT * FROM messages_archive;
+> SELECT * FROM utilisateurs_connectes;
+```
+Consulter les logs du service de base de données en temps réel
+```
+> docker logs -f client-cross-db-service
+```
+Couper l'application:
+```
+> docker-compose down -v
 ```
 
 ## Description
@@ -105,28 +136,53 @@ Le service ne communique pas directement avec *PostgreSQL*. Cette séparation pe
 ## Service d'archivage et de gestion des clients : `client-cons-db`
 Le service `client-cons-db` est responsable de la gestion des clients connectés et de l'archivage des échanges transitant par la messagerie.
 
+Initialement configuré en mode `validate`, le service exigeait la présence stricte des tables au démarrage sous peine de crash. Pour fluidifier le déploiement et l'automatisation dans Docker, la configuration a été passée à :
+```properties
+spring.jpa.hibernate.ddl-auto=update
+```
+
 Il traite deux types d'informations :
 - les messages techniques venant de `topictechout` ;
 - les messages applicatifs venant de `topicout` et `topicin`.
 
 Lorsqu'un client se connecte, il envoie un message du type :
-```text
-CONNECT:ClientA
+```
+CONNECT:ClientX
 ```
 
-Le service enregistre alors le client en base ou met à jour son statut à connecté. Lorsqu'un client quitte l'application avec la commande byebye, le client envoie :
-```text
-DISCONNECT:ClientA
+Le service **enregistre alors le client en base et met à jour son statut à connecté.**<br>
+
+Lorsqu'un client **quitte l'application avec la commande byebye**, le client envoie :
+```
+DISCONNECT:ClientX
 ```
 Le service met alors à jour son statut à déconnecté.
+<br>
 
-Le service répond également aux demandes de liste des clients connectés :
-```text
-GET:ClientA
+**Le service répond également aux demandes de liste des clients connectés :**
 ```
-Dans ce cas, il interroge *PostgreSQL* et renvoie la liste des clients disponibles via `topictechin`.
+GET:ClientX
+```
+Dans ce cas, il interroge *PostgreSQL* et renvoie la liste des clients disponibles via `topictechin`. <br>
+La commande à envoyer du côté client est:
+```
+> lister-clients
+```
 
-Enfin, `client-cons-db` archive les messages applicatifs. Les messages lus depuis `topicout` correspondent aux messages originaux envoyés par les clients. Les messages lus depuis `topicin` correspondent aux messages traduits renvoyés aux destinataires.
+*Précisions: la première demande qui intervient lors de la connection d'un nouveau client n'aboutit à rien car le client n'est à ce moment là le ```@Kafkalistener``` de la CLI n'est pas encore totalement démarré*
+<br>
+
+**Interrogation sur le statut de connexion d'un client précis:**
+```
+ISCONNECTED:DemandeurClientX#ClientX
+```
+La commande qui indique l'état de connexion d'un client donné est la suivante:
+```
+> is-connected nom_client
+```
+<br>
+
+Enfin, ```client-cons-db``` archive les messages applicatifs. Les messages lus depuis ```topicout``` correspondent aux messages originaux envoyés par les clients. Les messages lus depuis ```topicin``` correspondent aux messages traduits renvoyés aux destinataires.
 
 ## Déploiement *Docker*
 Le projet utilise *Docker* Compose afin de lancer les services d'infrastructure et les services applicatifs.
@@ -143,12 +199,12 @@ Les principaux conteneurs sont :
 *Kafka* est configuré avec des topics auto-créés afin que les topics nécessaires soient disponibles au moment où les clients et services commencent à publier. *PostgreSQL* est initialisé à partir du script SQL placé dans le projet. *LibreTranslate* est lancé localement dans un conteneur afin d'éviter de dépendre d'une API externe.
 
 Le client Shell n'est pas nécessairement conteneurisé, car il s'agit d'une application interactive en terminal. Il est lancé localement via les scripts fournis :
-```text
+```
 > .\start_chatting.bat [pseudo-au-choix] [groupe-au-choix](optionnel)
 > ./start_chatting.sh [pseudo-au-choix] [groupe-au-choix](optionnel)
 ```
 Exemples:
-```text
+```
 > .\start_chatting.bat ClientA 
 > ./start_chatting.sh ClientA ClientA_Group
 ```
@@ -159,4 +215,4 @@ Ce projet aboutit à une messagerie distribuée fonctionnelle reposant sur *Spri
 
 Ce TP a permis de mettre en pratique plusieurs notions centrales d'intergiciels : communication asynchrone, découplage entre composants, architecture orientée services, persistance des données et déploiement avec *Docker*. Il illustre ainsi l'intérêt d'une architecture modulaire, où chaque service possède une responsabilité claire.
 <br>
-L'application fournit une base cohérente pour comprendre le fonctionnement d'un système distribué extensible.
+L'application, en somme, fournit une base cohérente pour comprendre le fonctionnement d'un système distribué extensible.
