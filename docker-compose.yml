@@ -53,6 +53,24 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./infrastructure/init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  client-cons-db:
+    build:
+      context: ./client-cons-db
+      dockerfile: Dockerfile
+    container_name: client-cons-db-service
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      # On surcharge les variables pour que Java parle au réseau interne de Docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/messagerie_db
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      db:
+        condition: service_healthy # Attend que Postgres soit totalement prêt
+      kafka:
+        condition: service_started
+
   libretranslate:
     image: libretranslate/libretranslate:latest
     container_name: libretranslate
