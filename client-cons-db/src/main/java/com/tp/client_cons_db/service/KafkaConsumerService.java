@@ -57,7 +57,7 @@ public class KafkaConsumerService {
 
             // Scénario 1 : CONNECT:ClientA
             if (commandeBrute.startsWith("CONNECT:")) {
-                String username = commandeBrute.replace("CONNECT:", "");
+                String username = commandeBrute.replace("CONNECT:", "").trim();
                 UtilisateurConnecte user = new UtilisateurConnecte(username, true);
                 userRepo.save(user);
                 System.out.println(" [Bdd State] " + username + " est marqué comme CONNECTÉ.");
@@ -65,7 +65,7 @@ public class KafkaConsumerService {
             
             // Scénario 7 : DISCONNECT:ClientA (via byebye)
             else if (commandeBrute.startsWith("DISCONNECT:")) {
-                String username = commandeBrute.replace("DISCONNECT:", "");
+                String username = commandeBrute.replace("DISCONNECT:", "").trim();
                 UtilisateurConnecte user = new UtilisateurConnecte(username, false);
                 userRepo.save(user);
                 System.out.println(" [Bdd State] " + username + " est marqué comme DÉCONNECTÉ.");
@@ -73,7 +73,7 @@ public class KafkaConsumerService {
 
             // Scénario 2 : GET:ClientA (Demande de la liste des clients)
             else if (commandeBrute.startsWith("GET:")) {
-                String demandeur = commandeBrute.replace("GET:", "");
+                String demandeur = commandeBrute.replace("GET:", "").trim();
                 System.out.println(" [Tech GET] " + demandeur + " demande la liste des connectés.");
 
                 // 1. Chercher les clients connectés en BDD
@@ -104,8 +104,8 @@ public class KafkaConsumerService {
                 String[] clients = contenu.split("#");
                 
                 if (clients.length >= 2) {
-                    String demandeur = clients[0];
-                    String cible = clients[1]; 
+                    String demandeur = clients[0].trim();
+                    String cible = clients[1].trim(); 
                     
                     System.out.println(" [Tech ISCONNECTED] " + demandeur + " demande si " + cible + " est en ligne.");
 

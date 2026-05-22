@@ -14,8 +14,6 @@
 # limitations under the License.
 
 ---
-version: '3.8'
-
 services:
   kafka:
     image: apache/kafka:latest
